@@ -18,8 +18,9 @@ server.get('/', async (req, reply) => {
 })
 
 const dispatcher = new FastifyUndiciDispatcher(new Agent())
+dispatcher.route('myserver.local', server)
 
-request(`http://127.0.0.1:${server.addresses()[0].port}/`, {
+request('http://myserver.local', {
   dispatcher
 }).then((res) => {
   return res.body.text()
