@@ -44,8 +44,6 @@ class FastifyUndiciDispatcher {
           headers.push(value)
         }
       }
-      console.log('headers', headers)
-      console.log('headers', res.raw.res._headers)
       handler.onHeaders(res.statusCode, headers, () => {}, res.statusMessage)
       handler.onData(res.body)
       handler.onComplete([])
