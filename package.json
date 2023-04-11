@@ -1,0 +1,28 @@
+{
+  "name": "fastify-undici-dispatcher",
+  "version": "0.0.1",
+  "description": "An undici dispatcher to in-process Fastify servers",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard | snazzy && c8 node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcollina/fastify-undici-dispatcher.git"
+  },
+  "keywords": [],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcollina/fastify-undici-dispatcher/issues"
+  },
+  "homepage": "https://github.com/mcollina/fastify-undici-dispatcher#readme",
+  "devDependencies": {
+    "c8": "^7.13.0",
+    "fastify": "^4.15.0",
+    "snazzy": "^9.0.0",
+    "standard": "^17.0.0",
+    "test": "^3.3.0",
+    "undici": "^5.21.2"
+  }
+}
