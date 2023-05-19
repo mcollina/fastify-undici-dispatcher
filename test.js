@@ -9,18 +9,25 @@ const Fastify = require('fastify')
 test('basic usage', async (t) => {
   const server = Fastify()
   server.get('/', async (req, reply) => {
-    return 'hello world'
+    return 'root'
+  })
+  server.get('/foo', async (req, reply) => {
+    return 'foo'
   })
   await server.ready()
 
   const dispatcher = new FastifyUndiciDispatcher()
   dispatcher.route('myserver.local', server)
 
-  const res = await request('http://myserver.local/', {
-    dispatcher
-  })
+  {
+    const res = await request('http://myserver.local/', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'root')
+  }
 
-  assert.strictEqual(await res.body.text(), 'hello world')
+  {
+    const res = await request('http://myserver.local/foo', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'foo')
+  }
 })
 
 test('pass-through', async (t) => {
