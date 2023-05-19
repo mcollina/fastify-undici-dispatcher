@@ -13,7 +13,7 @@ class FastifyUndiciDispatcher {
   dispatch (opts, handler) {
     let url = opts.origin
     if (!(url instanceof URL)) {
-      url = new URL(url)
+      url = new URL(opts.path, url)
     }
 
     const server = this.routes.get(url.hostname)
