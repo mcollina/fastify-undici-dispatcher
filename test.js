@@ -130,7 +130,7 @@ test('removes unwanted headers', async (t) => {
     origin: 'http://myserver.local/',
     path: '/',
     headers: {
-      'connection': undefined,
+      connection: undefined,
       'transfer-encoding': undefined
     }
   })
