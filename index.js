@@ -28,6 +28,11 @@ class FastifyUndiciDispatcher extends Dispatcher {
       }
     }
 
+    if (opts.headers) {
+      delete opts.headers.connection
+      delete opts.headers['transfer-encoding']
+    }
+
     server.inject({
       method: opts.method,
       url: url.pathname,
