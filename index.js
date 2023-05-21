@@ -1,7 +1,10 @@
 'use strict'
 
-class FastifyUndiciDispatcher {
+const { Dispatcher } = require('undici')
+
+class FastifyUndiciDispatcher extends Dispatcher {
   constructor (dispatcher) {
+    super()
     this.dispatcher = dispatcher
     this.routes = new Map()
   }

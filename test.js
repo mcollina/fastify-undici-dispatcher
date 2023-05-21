@@ -80,3 +80,38 @@ test('should destroy the dispatcher', async (t) => {
   const dispatcher = new FastifyUndiciDispatcher()
   dispatcher.destroy()
 })
+
+test('should destroy the dispatcher', async (t) => {
+  let destroyed = false
+  const dispatcher = new FastifyUndiciDispatcher({
+    destroy () {
+      destroyed = true
+    }
+  })
+  dispatcher.destroy()
+  assert.strictEqual(destroyed, true)
+})
+
+test('dispatcher.request()', async (t) => {
+  const server = Fastify()
+  server.get('/', async (req, reply) => {
+    return 'root'
+  })
+  server.get('/foo', async (req, reply) => {
+    return 'foo'
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.route('myserver.local', server)
+
+  {
+    const res = await dispatcher.request({ origin: 'http://myserver.local/', path: '/' })
+    assert.strictEqual(await res.body.text(), 'root')
+  }
+
+  {
+    const res = await dispatcher.request({ origin: 'http://myserver.local/', path: '/foo' })
+    assert.strictEqual(await res.body.text(), 'foo')
+  }
+})
