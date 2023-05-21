@@ -115,3 +115,24 @@ test('dispatcher.request()', async (t) => {
     assert.strictEqual(await res.body.text(), 'foo')
   }
 })
+
+test('removes unwanted headers', async (t) => {
+  const server = Fastify()
+  server.get('/', async (req, reply) => {
+    return 'root'
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.route('myserver.local', server)
+
+  const res = await dispatcher.request({
+    origin: 'http://myserver.local/',
+    path: '/',
+    headers: {
+      'connection': undefined,
+      'transfer-encoding': undefined
+    }
+  })
+  assert.strictEqual(await res.body.text(), 'root')
+})
