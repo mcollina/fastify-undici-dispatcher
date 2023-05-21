@@ -75,3 +75,8 @@ test('array headers', async (t) => {
   assert.deepStrictEqual(res.headers['x-foo'], ['bar', 'baz'])
   assert.strictEqual(await res.body.text(), 'hello world')
 })
+
+test('should destroy the dispatcher', async (t) => {
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.destroy()
+})

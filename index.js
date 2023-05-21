@@ -32,7 +32,6 @@ class FastifyUndiciDispatcher {
       body: opts.body
     }).then(res => {
       const headers = []
-      console.log(res.headers)
       for (const [key, value] of Object.entries(res.headers)) {
         if (Array.isArray(value)) {
           for (const v of value) {
@@ -57,6 +56,12 @@ class FastifyUndiciDispatcher {
   close () {
     if (this.dispatcher) {
       return this.dispatcher.close()
+    }
+  }
+
+  destroy () {
+    if (this.dispatcher) {
+      return this.dispatcher.destroy()
     }
   }
 }
