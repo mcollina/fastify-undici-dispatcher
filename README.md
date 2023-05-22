@@ -17,8 +17,11 @@ server.get('/', async (req, reply) => {
   return 'hello world'
 })
 
-const dispatcher = new FastifyUndiciDispatcher(new Agent())
-dispatcher.route('myserver.local', server)
+const dispatcher = new FastifyUndiciDispatcher({
+  dispatcher: new Agent(), // optional
+  domain: '.local' // optional
+})
+dispatcher.route('myserver', server)
 
 request('http://myserver.local', {
   dispatcher
