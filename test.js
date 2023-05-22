@@ -37,7 +37,9 @@ test('pass-through', async (t) => {
   })
   await server.listen({ port: 0 })
 
-  const dispatcher = new FastifyUndiciDispatcher(new Agent())
+  const dispatcher = new FastifyUndiciDispatcher({
+    dispatcher: new Agent()
+  })
   t.after(() => dispatcher.close())
   t.after(() => server.close())
 
@@ -84,8 +86,10 @@ test('should destroy the dispatcher', async (t) => {
 test('should destroy the dispatcher', async (t) => {
   let destroyed = false
   const dispatcher = new FastifyUndiciDispatcher({
-    destroy () {
-      destroyed = true
+    dispatcher: {
+      destroy () {
+        destroyed = true
+      }
     }
   })
   dispatcher.destroy()
@@ -135,4 +139,65 @@ test('removes unwanted headers', async (t) => {
     }
   })
   assert.strictEqual(await res.body.text(), 'root')
+})
+
+test('quick fail', { timeout: 500 }, async (t) => {
+  const dispatcher = new FastifyUndiciDispatcher({
+    dispatcher: new Agent(),
+    domain: '.local'
+  })
+
+  await assert.rejects(request('http://myserver.local/', { dispatcher }), new Error('No server found for myserver.local'))
+})
+
+test('automatic domain', async (t) => {
+  const server = Fastify()
+  server.get('/', async (req, reply) => {
+    return 'root'
+  })
+  server.get('/foo', async (req, reply) => {
+    return 'foo'
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher({
+    domain: '.local'
+  })
+  dispatcher.route('myserver', server)
+
+  {
+    const res = await request('http://myserver.local/', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'root')
+  }
+
+  {
+    const res = await request('http://myserver.local/foo', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'foo')
+  }
+})
+
+test('automatic domain / 2', async (t) => {
+  const server = Fastify()
+  server.get('/', async (req, reply) => {
+    return 'root'
+  })
+  server.get('/foo', async (req, reply) => {
+    return 'foo'
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher({
+    domain: '.local'
+  })
+  dispatcher.route('myserver.local', server)
+
+  {
+    const res = await request('http://myserver.local/', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'root')
+  }
+
+  {
+    const res = await request('http://myserver.local/foo', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'foo')
+  }
 })

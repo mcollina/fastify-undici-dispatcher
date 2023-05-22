@@ -3,13 +3,17 @@
 const { Dispatcher } = require('undici')
 
 class FastifyUndiciDispatcher extends Dispatcher {
-  constructor (dispatcher) {
+  constructor (opts) {
     super()
-    this.dispatcher = dispatcher
+    this.dispatcher = opts?.dispatcher
     this.routes = new Map()
+    this._domain = opts?.domain
   }
 
   route (url, server) {
+    if (this._domain && !url.endsWith(this._domain)) {
+      url += this._domain
+    }
     this.routes.set(url, server)
   }
 
@@ -21,7 +25,7 @@ class FastifyUndiciDispatcher extends Dispatcher {
 
     const server = this.routes.get(url.hostname)
     if (!server) {
-      if (this.dispatcher) {
+      if (this.dispatcher && (this._domain === undefined || !url.hostname.endsWith(this._domain))) {
         return this.dispatcher.dispatch(opts, handler)
       } else {
         throw new Error('No server found for ' + url.hostname)
