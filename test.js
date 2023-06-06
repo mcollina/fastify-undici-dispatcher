@@ -51,6 +51,27 @@ test('pass-through', async (t) => {
   assert.strictEqual(text, 'hello world 2')
 })
 
+test('pass-through query string', async (t) => {
+  const server = Fastify()
+  server.get('/query', async (req, reply) => {
+    return req.query.test
+  })
+  await server.listen({ port: 0 })
+
+  const dispatcher = new FastifyUndiciDispatcher({
+    dispatcher: new Agent()
+  })
+  t.after(() => dispatcher.close())
+  t.after(() => server.close())
+
+  const res = await request(`http://127.0.0.1:${server.addresses()[0].port}/query?test=test`, {
+    dispatcher
+  })
+
+  const text = await res.body.text()
+  assert.strictEqual(text, 'test', 'query string not passed through')
+})
+
 test('no server found', async (t) => {
   const dispatcher = new FastifyUndiciDispatcher()
 

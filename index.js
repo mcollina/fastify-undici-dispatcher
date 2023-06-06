@@ -39,7 +39,7 @@ class FastifyUndiciDispatcher extends Dispatcher {
 
     server.inject({
       method: opts.method,
-      url: url.pathname,
+      url: url.pathname + url.search,
       headers: opts.headers,
       body: opts.body
     }).then(res => {
