@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/mcollina/fastify-undici-dispatcher#readme",
   "devDependencies": {
-    "c8": "^7.13.0",
+    "c8": "^8.0.0",
     "fastify": "^4.15.0",
     "snazzy": "^9.0.0",
     "standard": "^17.0.0",
