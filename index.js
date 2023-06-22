@@ -56,7 +56,7 @@ class FastifyUndiciDispatcher extends Dispatcher {
         }
       }
       handler.onHeaders(res.statusCode, headers, () => {}, res.statusMessage)
-      handler.onData(res.body)
+      handler.onData(res.rawPayload)
       handler.onComplete([])
       /* c8 ignore next 3 */
     }).catch(err => {

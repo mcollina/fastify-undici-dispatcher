@@ -222,3 +222,27 @@ test('automatic domain / 2', async (t) => {
     assert.strictEqual(await res.body.text(), 'foo')
   }
 })
+
+test('binary response', async (t) => {
+  const server = Fastify()
+
+  const randomBuffer = Buffer.alloc(4)
+  randomBuffer.writeUInt32BE(2424213242)
+
+  server.get('/', async (req, reply) => {
+    reply.header('content-type', 'application/octet-stream')
+    reply.send(randomBuffer)
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.route('myserver.local', server)
+
+  const res = await dispatcher.request({
+    origin: 'http://myserver.local/',
+    path: '/'
+  })
+
+  const data = await res.body.arrayBuffer()
+  assert.deepEqual(Buffer.from(data), randomBuffer)
+})
