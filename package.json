@@ -1,6 +1,6 @@
 {
   "name": "fastify-undici-dispatcher",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "An undici dispatcher to in-process Fastify servers",
   "main": "index.js",
   "scripts": {
