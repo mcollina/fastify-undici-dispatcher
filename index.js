@@ -14,7 +14,8 @@ class FastifyUndiciDispatcher extends Dispatcher {
     if (this._domain && !url.endsWith(this._domain)) {
       url += this._domain
     }
-    this.routes.set(url, server)
+    const address = server.server.address()
+    this.routes.set(url, { server, address })
   }
 
   dispatch (opts, handler) {
@@ -23,8 +24,8 @@ class FastifyUndiciDispatcher extends Dispatcher {
       url = new URL(opts.path, url)
     }
 
-    const server = this.routes.get(url.hostname)
-    if (!server) {
+    const wrap = this.routes.get(url.hostname)
+    if (!wrap) {
       if (this.dispatcher && (this._domain === undefined || !url.hostname.endsWith(this._domain))) {
         return this.dispatcher.dispatch(opts, handler)
       } else {
@@ -32,9 +33,23 @@ class FastifyUndiciDispatcher extends Dispatcher {
       }
     }
 
+    const { server, address } = wrap
+
     if (opts.headers) {
       delete opts.headers.connection
       delete opts.headers['transfer-encoding']
+    }
+
+    if (address) {
+      if (address.family === 'IPv6') {
+        opts.origin = `http://[${address.address}]:${address.port}`
+      } else {
+        opts.origin = `http://${address.address}:${address.port}`
+      }
+
+      if (this.dispatcher) {
+        return this.dispatcher.dispatch(opts, handler)
+      }
     }
 
     server.inject({

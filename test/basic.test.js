@@ -1,9 +1,9 @@
 'use strict'
 
-const test = require('test')
+const test = require('node:test')
 const assert = require('assert')
 const { request, Agent } = require('undici')
-const FastifyUndiciDispatcher = require('.')
+const FastifyUndiciDispatcher = require('..')
 const Fastify = require('fastify')
 
 test('basic usage', async (t) => {
