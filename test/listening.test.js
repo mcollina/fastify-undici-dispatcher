@@ -69,3 +69,37 @@ test('supports @fastify/express', async (t) => {
     assert.strictEqual(await res.body.text(), 'foo')
   }
 })
+
+test('supports @fastify/express (ipv4)', async (t) => {
+  const server = Fastify()
+
+  const router = Router()
+
+  router.get('/', (req, res) => {
+    res.send('root')
+  })
+  router.get('/foo', (req, res) => {
+    res.send('foo')
+  })
+
+  await server.register(FastifyExpress)
+  server.use(router)
+
+  await server.listen({ port: 0, host: '127.0.0.1' })
+  t.after(() => server.close())
+
+  const dispatcher = new FastifyUndiciDispatcher({
+    dispatcher: new Agent()
+  })
+  dispatcher.route('myserver.local', server)
+
+  {
+    const res = await request('http://myserver.local/', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'root')
+  }
+
+  {
+    const res = await request('http://myserver.local/foo', { dispatcher })
+    assert.strictEqual(await res.body.text(), 'foo')
+  }
+})
