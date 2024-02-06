@@ -246,3 +246,38 @@ test('binary response', async (t) => {
   const data = await res.body.arrayBuffer()
   assert.deepEqual(Buffer.from(data), randomBuffer)
 })
+
+test('pass query params', async (t) => {
+  const server = Fastify()
+  server.get('/query', async (req, reply) => {
+    return req.query.test
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.route('myserver.local', server)
+
+  const res = await dispatcher.request({
+    origin: 'http://myserver.local/',
+    path: '/query',
+    query: { test: 'foo' }
+  })
+  assert.strictEqual(await res.body.text(), 'foo')
+})
+
+test('pass query string', async (t) => {
+  const server = Fastify()
+  server.get('/query', async (req, reply) => {
+    return req.query.test
+  })
+  await server.ready()
+
+  const dispatcher = new FastifyUndiciDispatcher()
+  dispatcher.route('myserver.local', server)
+
+  const res = await dispatcher.request({
+    origin: 'http://myserver.local/',
+    path: '/query?test=foo'
+  })
+  assert.strictEqual(await res.body.text(), 'foo')
+})
