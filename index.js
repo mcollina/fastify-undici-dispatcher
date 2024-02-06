@@ -56,6 +56,7 @@ class FastifyUndiciDispatcher extends Dispatcher {
       method: opts.method,
       url: url.pathname + url.search,
       headers: opts.headers,
+      query: opts.query,
       body: opts.body
     }).then(res => {
       const headers = []
