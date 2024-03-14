@@ -26,6 +26,6 @@
     "standard": "^17.0.0"
   },
   "dependencies": {
-    "undici": "^6.2.0"
+    "undici": "^6.9.0"
   }
 }

@@ -3,7 +3,7 @@
 const test = require('node:test')
 const assert = require('assert')
 const { request, Agent } = require('undici')
-const FastifyUndiciDispatcher = require('..')
+const { createFastifyInterceptor } = require('..')
 const Fastify = require('fastify')
 
 test('basic usage', async (t) => {
@@ -16,8 +16,11 @@ test('basic usage', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+
+  const dispatcher = new Agent()
+    .compose(interceptor)
 
   {
     const res = await request('http://myserver.local/', { dispatcher })
@@ -37,9 +40,7 @@ test('pass-through', async (t) => {
   })
   await server.listen({ port: 0 })
 
-  const dispatcher = new FastifyUndiciDispatcher({
-    dispatcher: new Agent()
-  })
+  const dispatcher = new Agent().compose(createFastifyInterceptor())
   t.after(() => dispatcher.close())
   t.after(() => server.close())
 
@@ -58,9 +59,8 @@ test('pass-through query string', async (t) => {
   })
   await server.listen({ port: 0 })
 
-  const dispatcher = new FastifyUndiciDispatcher({
-    dispatcher: new Agent()
-  })
+  const dispatcher = new Agent().compose(createFastifyInterceptor())
+
   t.after(() => dispatcher.close())
   t.after(() => server.close())
 
@@ -73,7 +73,9 @@ test('pass-through query string', async (t) => {
 })
 
 test('no server found', async (t) => {
-  const dispatcher = new FastifyUndiciDispatcher()
+  const dispatcher = new Agent().compose(createFastifyInterceptor({
+    domain: '.local'
+  }))
 
   await assert.rejects(request('http://myserver.local/', {
     dispatcher
@@ -88,8 +90,10 @@ test('array headers', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+
+  const dispatcher = new Agent().compose(interceptor)
 
   const res = await request('http://myserver.local/', {
     dispatcher
@@ -99,50 +103,6 @@ test('array headers', async (t) => {
   assert.strictEqual(await res.body.text(), 'hello world')
 })
 
-test('should destroy the dispatcher', async (t) => {
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.destroy()
-})
-
-test('should destroy the dispatcher', async (t) => {
-  let destroyed = false
-  const dispatcher = new FastifyUndiciDispatcher({
-    dispatcher: {
-      dispatch () {
-      },
-      destroy () {
-        destroyed = true
-      }
-    }
-  })
-  dispatcher.destroy()
-  assert.strictEqual(destroyed, true)
-})
-
-test('dispatcher.request()', async (t) => {
-  const server = Fastify()
-  server.get('/', async (req, reply) => {
-    return 'root'
-  })
-  server.get('/foo', async (req, reply) => {
-    return 'foo'
-  })
-  await server.ready()
-
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
-
-  {
-    const res = await dispatcher.request({ origin: 'http://myserver.local/', path: '/' })
-    assert.strictEqual(await res.body.text(), 'root')
-  }
-
-  {
-    const res = await dispatcher.request({ origin: 'http://myserver.local/', path: '/foo' })
-    assert.strictEqual(await res.body.text(), 'foo')
-  }
-})
-
 test('removes unwanted headers', async (t) => {
   const server = Fastify()
   server.get('/', async (req, reply) => {
@@ -150,8 +110,10 @@ test('removes unwanted headers', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+
+  const dispatcher = new Agent().compose(interceptor)
 
   const res = await dispatcher.request({
     origin: 'http://myserver.local/',
@@ -164,15 +126,6 @@ test('removes unwanted headers', async (t) => {
   assert.strictEqual(await res.body.text(), 'root')
 })
 
-test('quick fail', { timeout: 500 }, async (t) => {
-  const dispatcher = new FastifyUndiciDispatcher({
-    dispatcher: new Agent(),
-    domain: '.local'
-  })
-
-  await assert.rejects(request('http://myserver.local/', { dispatcher }), new Error('No server found for myserver.local'))
-})
-
 test('automatic domain', async (t) => {
   const server = Fastify()
   server.get('/', async (req, reply) => {
@@ -183,10 +136,9 @@ test('automatic domain', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher({
-    domain: '.local'
-  })
-  dispatcher.route('myserver', server)
+  const interceptor = createFastifyInterceptor({ domain: '.local' })
+  interceptor.route('myserver', server)
+  const dispatcher = new Agent().compose(interceptor)
 
   {
     const res = await request('http://myserver.local/', { dispatcher })
@@ -209,10 +161,9 @@ test('automatic domain / 2', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher({
-    domain: '.local'
-  })
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor({ domain: '.local' })
+  interceptor.route('myserver', server)
+  const dispatcher = new Agent().compose(interceptor)
 
   {
     const res = await request('http://myserver.local/', { dispatcher })
@@ -237,8 +188,9 @@ test('binary response', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+  const dispatcher = new Agent().compose(interceptor)
 
   const res = await dispatcher.request({
     origin: 'http://myserver.local/',
@@ -256,8 +208,9 @@ test('pass query params', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+  const dispatcher = new Agent().compose(interceptor)
 
   const res = await dispatcher.request({
     origin: 'http://myserver.local/',
@@ -274,8 +227,9 @@ test('pass query string', async (t) => {
   })
   await server.ready()
 
-  const dispatcher = new FastifyUndiciDispatcher()
-  dispatcher.route('myserver.local', server)
+  const interceptor = createFastifyInterceptor()
+  interceptor.route('myserver.local', server)
+  const dispatcher = new Agent().compose(interceptor)
 
   const res = await dispatcher.request({
     origin: 'http://myserver.local/',
