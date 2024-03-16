@@ -8,7 +8,7 @@ An undici dispatcher to in-process Fastify servers
 npm i fastify fastify-undici-dispatcher undici
 ```
 
-## Usage as a Interceptor
+## Usage as an Interceptor
 
 ```js
 const { request, Agent } = require('undici')
