@@ -23,7 +23,7 @@ const interceptor = createFastifyInterceptor({
   domain: '.local' // optional
 })
 
-const dispatcher = new Agent.compose(interceptor)
+const dispatcher = new Agent().compose(interceptor)
 dispatcher.route('myserver', server)
 
 request('http://myserver.local', {
