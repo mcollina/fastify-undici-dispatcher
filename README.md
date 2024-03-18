@@ -8,7 +8,7 @@ An undici dispatcher to in-process Fastify servers
 npm i fastify fastify-undici-dispatcher undici
 ```
 
-## Usage as a Interceptor
+## Usage as an Interceptor
 
 ```js
 const { request, Agent } = require('undici')
@@ -23,7 +23,7 @@ const interceptor = createFastifyInterceptor({
   domain: '.local' // optional
 })
 
-const dispatcher = new Agent.compose(interceptor)
+const dispatcher = new Agent().compose(interceptor)
 dispatcher.route('myserver', server)
 
 request('http://myserver.local', {
